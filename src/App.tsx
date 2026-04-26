@@ -1,4 +1,15 @@
-import { Atom, BookOpen, Brain, Code2, Layers3, Library, Route, Server } from "lucide-react";
+import {
+  Atom,
+  BookOpen,
+  Brain,
+  Code2,
+  Layers3,
+  Library,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Route,
+  Server,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { type InterviewSection, interviewSections, weeklyPlan } from "./content/interviewData";
 import { CarbonPage } from "./features/carbon/CarbonPage";
@@ -21,25 +32,79 @@ const navItems: Array<{ id: PageId; label: string; icon: typeof BookOpen }> = [
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 const eyebrowClass = "text-xs font-extrabold uppercase tracking-normal text-emerald-700";
+const sidebarStorageKey = "react-review-sidebar-collapsed";
+const tooltipClass =
+  "pointer-events-none absolute left-full top-1/2 z-30 ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-950 px-2.5 py-1.5 text-xs font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 lg:block";
 
 export function App() {
   const [page, setPage] = useState<PageId>("overview");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.localStorage.getItem(sidebarStorageKey) === "true";
+  });
   const activeSection = useMemo(
     () => interviewSections.find((section) => section.id === page),
     [page],
   );
+  const sidebarToggleLabel = isSidebarCollapsed ? "展开侧边栏" : "折叠侧边栏";
+
+  function toggleSidebar() {
+    setIsSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem(sidebarStorageKey, String(next));
+      return next;
+    });
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div
+      className={`min-h-screen bg-slate-50 text-slate-800 transition-all duration-200 lg:grid ${
+        isSidebarCollapsed
+          ? "lg:grid-cols-[80px_minmax(0,1fr)]"
+          : "lg:grid-cols-[260px_minmax(0,1fr)]"
+      }`}
+    >
       <aside
-        className="sticky top-0 z-20 border-b border-slate-700 bg-slate-900 px-4 py-4 text-white lg:h-screen lg:border-b-0 lg:px-5 lg:py-6"
+        className={`sticky top-0 z-20 overflow-visible border-b border-slate-700 bg-slate-900 px-4 py-4 text-white transition-all duration-200 lg:h-screen lg:border-b-0 lg:py-6 ${
+          isSidebarCollapsed ? "lg:px-3" : "lg:px-5"
+        }`}
         aria-label="复习导航"
       >
-        <div className="mx-auto flex max-w-6xl items-center gap-3 lg:mx-0 lg:mb-7">
-          <Library aria-hidden="true" className="h-7 w-7 shrink-0 text-sky-300" />
-          <div className="min-w-0">
-            <strong className="block truncate text-base font-extrabold">React Review</strong>
-            <span className="mt-0.5 block text-sm text-slate-300">1 周面试冲刺</span>
+        <div
+          className={`mx-auto flex max-w-6xl items-center justify-between gap-3 lg:mx-0 lg:mb-7 ${
+            isSidebarCollapsed ? "lg:flex-col lg:justify-start" : ""
+          }`}
+        >
+          <div
+            className={`flex min-w-0 items-center gap-3 ${
+              isSidebarCollapsed ? "lg:justify-center" : ""
+            }`}
+          >
+            <Library aria-hidden="true" className="h-7 w-7 shrink-0 text-sky-300" />
+            <div className={`min-w-0 ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
+              <strong className="block truncate text-base font-extrabold">React Review</strong>
+              <span className="mt-0.5 block text-sm text-slate-300">1 周面试冲刺</span>
+            </div>
+          </div>
+          <div className="group relative hidden lg:block">
+            <button
+              aria-expanded={!isSidebarCollapsed}
+              aria-label={sidebarToggleLabel}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white focus:outline-none"
+              onClick={toggleSidebar}
+              title={sidebarToggleLabel}
+              type="button"
+            >
+              {isSidebarCollapsed ? (
+                <PanelLeftOpen aria-hidden="true" className="h-5 w-5" />
+              ) : (
+                <PanelLeftClose aria-hidden="true" className="h-5 w-5" />
+              )}
+            </button>
+            {isSidebarCollapsed && <span className={tooltipClass}>{sidebarToggleLabel}</span>}
           </div>
         </div>
 
@@ -48,19 +113,27 @@ export function App() {
             const Icon = item.icon;
             const isActive = page === item.id;
             return (
-              <button
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-colors sm:justify-start ${
-                  isActive
-                    ? "bg-slate-700 text-white"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                }`}
-                key={item.id}
-                onClick={() => setPage(item.id)}
-                type="button"
-              >
-                <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </button>
+              <div className="group relative" key={item.id}>
+                <button
+                  aria-label={item.label}
+                  className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-colors sm:justify-start ${
+                    isSidebarCollapsed ? "lg:justify-center lg:px-0" : "lg:justify-start"
+                  } ${
+                    isActive
+                      ? "bg-slate-700 text-white"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white"
+                  }`}
+                  onClick={() => setPage(item.id)}
+                  title={item.label}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+                  <span className={`truncate ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
+                    {item.label}
+                  </span>
+                </button>
+                {isSidebarCollapsed && <span className={tooltipClass}>{item.label}</span>}
+              </div>
             );
           })}
         </nav>
