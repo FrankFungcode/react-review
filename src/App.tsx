@@ -1,0 +1,202 @@
+import { Atom, BookOpen, Brain, Code2, Layers3, Library, Route, Server } from "lucide-react";
+import { useMemo, useState } from "react";
+import { type InterviewSection, interviewSections, weeklyPlan } from "./content/interviewData";
+import { CarbonPage } from "./features/carbon/CarbonPage";
+import { JsLabPage } from "./features/js-lab/JsLabPage";
+import { NestPage } from "./features/nest/NestPage";
+import { ReactDemosPage } from "./features/react-demos/ReactDemosPage";
+import { StatePage } from "./features/state/StatePage";
+
+type PageId = "overview" | "react" | "next" | "js" | "state" | "carbon" | "nest";
+
+const navItems: Array<{ id: PageId; label: string; icon: typeof BookOpen }> = [
+  { id: "overview", label: "总览", icon: BookOpen },
+  { id: "react", label: "React", icon: Brain },
+  { id: "next", label: "Next.js", icon: Route },
+  { id: "js", label: "JavaScript", icon: Code2 },
+  { id: "state", label: "状态管理", icon: Layers3 },
+  { id: "carbon", label: "碳元素", icon: Atom },
+  { id: "nest", label: "Nest.js", icon: Server },
+];
+
+const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
+const eyebrowClass = "text-xs font-extrabold uppercase tracking-normal text-emerald-700";
+
+export function App() {
+  const [page, setPage] = useState<PageId>("overview");
+  const activeSection = useMemo(
+    () => interviewSections.find((section) => section.id === page),
+    [page],
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
+      <aside
+        className="sticky top-0 z-20 border-b border-slate-700 bg-slate-900 px-4 py-4 text-white lg:h-screen lg:border-b-0 lg:px-5 lg:py-6"
+        aria-label="复习导航"
+      >
+        <div className="mx-auto flex max-w-6xl items-center gap-3 lg:mx-0 lg:mb-7">
+          <Library aria-hidden="true" className="h-7 w-7 shrink-0 text-sky-300" />
+          <div className="min-w-0">
+            <strong className="block truncate text-base font-extrabold">React Review</strong>
+            <span className="mt-0.5 block text-sm text-slate-300">1 周面试冲刺</span>
+          </div>
+        </div>
+
+        <nav className="mx-auto mt-4 grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3 lg:mt-0 lg:grid-cols-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = page === item.id;
+            return (
+              <button
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-colors sm:justify-start ${
+                  isActive
+                    ? "bg-slate-700 text-white"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+                key={item.id}
+                onClick={() => setPage(item.id)}
+                type="button"
+              >
+                <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {page === "overview" && <Overview />}
+        {page === "react" && <ReactDemosPage section={activeSection} />}
+        {page === "next" && activeSection && <QuestionBank section={activeSection} />}
+        {page === "js" && <JsLabPage />}
+        {page === "state" && <StatePage section={activeSection} />}
+        {page === "carbon" && <CarbonPage />}
+        {page === "nest" && <NestPage />}
+      </main>
+    </div>
+  );
+}
+
+function Overview() {
+  return (
+    <>
+      <section className="border-b border-slate-200 pb-8 pt-3 sm:pb-10 sm:pt-8 lg:pb-12 lg:pt-12">
+        <p className={eyebrowClass}>React + TypeScript + Vite</p>
+        <h1 className="mt-3 max-w-5xl text-3xl font-extrabold leading-tight tracking-normal text-slate-950 sm:text-4xl lg:text-5xl">
+          把高频题变成可以点、可以讲、可以复盘的面试训练场。
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">
+          这个项目覆盖 React、Next.js、JavaScript
+          与状态管理。每个模块都按“短答案、展开解释、追问、demo” 组织，方便你从刷题切换到口述表达。
+        </p>
+      </section>
+
+      <section className="py-7 sm:py-8">
+        <SectionHeading eyebrow="7 days" title="一周冲刺节奏" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {weeklyPlan.map((day) => (
+            <article className={`${cardClass} p-4 sm:p-5`} key={day.day}>
+              <span className="text-sm font-extrabold text-emerald-700">{day.day}</span>
+              <h3 className="mt-2 text-base font-extrabold text-slate-900">{day.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{day.output}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-7 sm:py-8">
+        <SectionHeading eyebrow="modules" title="复习模块" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {interviewSections
+            .filter((section) => section.id !== "overview")
+            .map((section) => (
+              <article className={`${cardClass} p-4 sm:p-5`} key={section.id}>
+                <h3 className="text-lg font-extrabold text-slate-900">{section.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{section.description}</p>
+                <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-6 text-slate-700">
+                  {section.focus.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          <article className={`${cardClass} p-4 sm:p-5`}>
+            <h3 className="text-lg font-extrabold text-slate-900">碳元素面试题</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              基于外部文档整理的 22 个追问题，覆盖 Next.js、React、工程化、AI 通信和安全。
+            </p>
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-6 text-slate-700">
+              <li>Next.js 深水区</li>
+              <li>React 18 原理</li>
+              <li>SSE 与 XSS</li>
+              <li>Zustand 多实例</li>
+            </ul>
+          </article>
+          <article className={`${cardClass} p-4 sm:p-5`}>
+            <h3 className="text-lg font-extrabold text-slate-900">Nest.js 高级全栈</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              面向高级全栈岗位，覆盖 Nest 核心、数据库、鉴权、缓存、微服务、测试、部署和系统设计。
+            </p>
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-6 text-slate-700">
+              <li>DI 与请求链路</li>
+              <li>事务与权限</li>
+              <li>缓存与队列</li>
+              <li>全栈系统设计</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-5 max-w-3xl">
+      <p className={eyebrowClass}>{eyebrow}</p>
+      <h1 className="mt-2 text-2xl font-extrabold tracking-normal text-slate-950 sm:text-3xl">
+        {title}
+      </h1>
+      {description && <p className="mt-2 text-base leading-7 text-slate-600">{description}</p>}
+    </div>
+  );
+}
+
+function QuestionBank({ section }: { section: InterviewSection }) {
+  return (
+    <section className="py-3 sm:py-6">
+      <SectionHeading
+        eyebrow={section.id}
+        title={section.title}
+        description={section.description}
+      />
+      <div className="grid gap-4">
+        {section.questions.map((question) => (
+          <article className={`${cardClass} p-4 sm:p-5`} key={question.question}>
+            <h2 className="text-lg font-extrabold leading-7 text-slate-900 sm:text-xl">
+              {question.question}
+            </h2>
+            <p className="mt-3 border-l-4 border-sky-500 pl-3 font-bold leading-7 text-slate-800">
+              {question.shortAnswer}
+            </p>
+            <p className="mt-3 leading-7 text-slate-600">{question.detail}</p>
+            <div className="mt-4 grid gap-1 border-t border-slate-200 pt-4 text-slate-600">
+              <strong className="text-slate-800">常见追问</strong>
+              <span className="leading-7">{question.followUp}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
