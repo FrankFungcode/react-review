@@ -14,8 +14,7 @@ const initialItems: DemoItem[] = [
   { id: "fiber", label: "Fiber", value: "渲染机制" },
 ];
 
-const cardClass =
-  "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
+const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 const inputClass =
   "min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100";
 const primaryButtonClass =
@@ -27,15 +26,11 @@ export function ReactDemosPage({ section }: { section?: InterviewSection }) {
   return (
     <section className="py-3 sm:py-6">
       <div className="mb-5 max-w-3xl">
-        <p className="text-xs font-extrabold uppercase tracking-normal text-emerald-700">
-          react
-        </p>
+        <p className="text-xs font-extrabold uppercase tracking-normal text-emerald-700">react</p>
         <h1 className="mt-2 text-2xl font-extrabold tracking-normal text-slate-950 sm:text-3xl">
           {section?.title}
         </h1>
-        <p className="mt-2 text-base leading-7 text-slate-600">
-          {section?.description}
-        </p>
+        <p className="mt-2 text-base leading-7 text-slate-600">{section?.description}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -46,10 +41,7 @@ export function ReactDemosPage({ section }: { section?: InterviewSection }) {
 
       <div className="mt-5 grid gap-4">
         {section?.questions.map((question) => (
-          <article
-            className={`${cardClass} p-4 sm:p-5`}
-            key={question.question}
-          >
+          <article className={`${cardClass} p-4 sm:p-5`} key={question.question}>
             <h2 className="text-lg font-extrabold leading-7 text-slate-900 sm:text-xl">
               {question.question}
             </h2>
@@ -86,11 +78,7 @@ function ControlledInputDemo() {
       </label>
       <label className="grid gap-1.5 font-bold text-slate-700">
         非受控输入
-        <input
-          className={inputClass}
-          defaultValue="一次性读取"
-          ref={uncontrolledRef}
-        />
+        <input className={inputClass} defaultValue="一次性读取" ref={uncontrolledRef} />
       </label>
       <button
         className={primaryButtonClass}
@@ -163,11 +151,7 @@ function RenderMemoDemo() {
     <article className={`${cardClass} grid content-start gap-3 p-4 sm:p-5`}>
       <h2 className="text-lg font-extrabold text-slate-900">memo 与重渲染</h2>
       <div className="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
-        <button
-          className={primaryButtonClass}
-          onClick={() => setCount(count + 1)}
-          type="button"
-        >
+        <button className={primaryButtonClass} onClick={() => setCount(count + 1)} type="button">
           count {count}
         </button>
         <input

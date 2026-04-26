@@ -1,12 +1,8 @@
 import { carbonEnhancements } from "../../content/carbonEnhancements";
 import type { CarbonQuestion } from "../../content/carbonQuestions";
-import {
-  carbonCategories,
-  carbonQuestions,
-} from "../../content/carbonQuestions";
+import { carbonCategories, carbonQuestions } from "../../content/carbonQuestions";
 
-const cardClass =
-  "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
+const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 
 export function CarbonPage() {
   return (
@@ -19,25 +15,19 @@ export function CarbonPage() {
           碳元素面试题
         </h1>
         <p className="mt-2 text-base leading-7 text-slate-600">
-          基于文档中的 22 个问题整理，覆盖 Next.js、React、状态管理、工程化、AI
-          通信、安全与 SDD。 每题都按面试口述口径补充答案，关键题附代码示例。
+          基于文档中的 22 个问题整理，覆盖 Next.js、React、状态管理、工程化、AI 通信、安全与 SDD。
+          每题都按面试口述口径补充答案，关键题附代码示例。
         </p>
       </div>
 
       <div className="grid gap-6">
         {carbonCategories.map((category) => {
-          const questions = carbonQuestions.filter(
-            (item) => item.category === category,
-          );
+          const questions = carbonQuestions.filter((item) => item.category === category);
           return (
             <section className="grid gap-4" key={category}>
               <div>
-                <p className="text-sm font-extrabold text-emerald-700">
-                  {category}
-                </p>
-                <h2 className="mt-1 text-xl font-extrabold text-slate-950">
-                  {category} 高频追问
-                </h2>
+                <p className="text-sm font-extrabold text-emerald-700">{category}</p>
+                <h2 className="mt-1 text-xl font-extrabold text-slate-950">{category} 高频追问</h2>
               </div>
               <div className="grid gap-4">
                 {questions.map((question, index) => (
@@ -86,9 +76,7 @@ function QuestionCard({
         {enhancement && (
           <div className="rounded-lg bg-emerald-50 p-3">
             <strong className="text-sm text-emerald-950">深挖回答</strong>
-            <p className="mt-2 leading-7 text-slate-700">
-              {enhancement.deepDive}
-            </p>
+            <p className="mt-2 leading-7 text-slate-700">{enhancement.deepDive}</p>
           </div>
         )}
         {question.talkingPoints && (
