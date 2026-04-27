@@ -1,7 +1,8 @@
 # question-search Specification
 
 ## Purpose
-TBD - created by archiving change add-question-search. Update Purpose after archive.
+Define how question-bank keyword search filters visible cards, restores state from the URL, and remains accessible to keyboard and assistive-technology users.
+
 ## Requirements
 ### Requirement: Search filters visible questions
 Question-bank pages SHALL provide a keyword search control that filters visible question cards.
@@ -36,4 +37,3 @@ The search control SHALL have an accessible label and SHALL be operable with a k
 - **GIVEN** focus is on the search input
 - **WHEN** the user types a query
 - **THEN** filtered results update without requiring pointer interaction
-
