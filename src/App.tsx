@@ -215,7 +215,7 @@ export function App() {
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <Suspense fallback={<PageFallback />}>
           {page === "overview" && <Overview />}
-          {page === "react" && <ReactDemosPage section={activeSection} />}
+          {page === "react" && <ReactDemosPage />}
           {page === "next" && activeSection && <QuestionBank section={activeSection} />}
           {page === "js" && <JsLabPage />}
           {page === "state" && <StatePage section={activeSection} />}

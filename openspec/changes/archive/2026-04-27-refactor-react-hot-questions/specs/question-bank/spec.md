@@ -1,14 +1,4 @@
-## Purpose
-
-Define how interview question banks organize, render, and preserve user-facing study content.
-## Requirements
-### Requirement: Question banks are grouped by category
-The application SHALL organize question-bank content by category and display each category with its associated questions.
-
-#### Scenario: Display categorized questions
-- **GIVEN** a question bank contains categories and questions
-- **WHEN** the user opens that question bank page
-- **THEN** each category section shows only questions that belong to that category
+## MODIFIED Requirements
 
 ### Requirement: Question cards expose interview-ready content
 Question cards SHALL display the prompt, answer content, talking points when available, follow-up prompts when available, and code examples when available.
@@ -40,16 +30,3 @@ Large question-bank pages SHALL avoid unnecessary repeated grouping work during 
 - **GIVEN** a grouped question bank contains rich searchable fields
 - **WHEN** the user searches by a field such as category, talking point, follow-up, or code content
 - **THEN** filtering reuses prepared groups and returns matching question cards without recomputing category grouping in the render loop
-
-### Requirement: Question bank state is shareable when interactive controls are added
-Interactive question-bank controls that affect visible results SHALL be represented in the URL when the state is useful to share or restore.
-
-#### Scenario: Restore filtered question bank
-- **GIVEN** a user opens a URL containing supported question-bank filter state
-- **WHEN** the question-bank page initializes
-- **THEN** the visible results reflect that URL state
-
-#### Scenario: Preserve page selection with filters
-- **GIVEN** a user is viewing a specific study module with question-bank filter state
-- **WHEN** the URL is shared or refreshed
-- **THEN** both the selected module and supported filter state are restored
