@@ -2,8 +2,22 @@ import type { NestQuestion } from "../../content/nestQuestions";
 import { nestCategories, nestQuestions } from "../../content/nestQuestions";
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
+const nestQuestionGroups = nestCategories.map((category, categoryIndex) => ({
+  category,
+  id: getNestCategoryId(categoryIndex),
+  questions: nestQuestions
+    .map((question, index) => ({ index: index + 1, question }))
+    .filter(({ question }) => question.category === category),
+}));
 
 export function NestPage() {
+  function scrollToCategory(id: string) {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   return (
     <section className="py-3 sm:py-6">
       <div className="mb-6 max-w-4xl">
@@ -21,32 +35,31 @@ export function NestPage() {
       </div>
 
       <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {nestCategories.map((category) => (
-          <div className={`${cardClass} p-4`} key={category}>
+        {nestQuestionGroups.map(({ category, id, questions }) => (
+          <button
+            aria-label={`跳转到 ${category}`}
+            className={`${cardClass} cursor-pointer p-4 text-left transition hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-100`}
+            key={category}
+            onClick={() => scrollToCategory(id)}
+            type="button"
+          >
             <p className="text-sm font-extrabold text-emerald-700">{category}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              {nestQuestions.filter((question) => question.category === category).length} 道高级题
-            </p>
-          </div>
+            <p className="mt-1 text-sm leading-6 text-slate-600">{questions.length} 道高级题</p>
+          </button>
         ))}
       </div>
 
       <div className="grid gap-6">
-        {nestCategories.map((category) => {
-          const questions = nestQuestions.filter((question) => question.category === category);
+        {nestQuestionGroups.map(({ category, id, questions }) => {
           return (
-            <section className="grid gap-4" key={category}>
+            <section className="grid scroll-mt-24 gap-4 lg:scroll-mt-8" id={id} key={category}>
               <div>
                 <p className="text-sm font-extrabold text-emerald-700">{category}</p>
                 <h2 className="mt-1 text-xl font-extrabold text-slate-950">{category} 面试题</h2>
               </div>
               <div className="grid gap-4">
-                {questions.map((question) => (
-                  <QuestionCard
-                    index={nestQuestions.indexOf(question) + 1}
-                    key={question.question}
-                    question={question}
-                  />
+                {questions.map(({ index, question }) => (
+                  <QuestionCard index={index} key={question.question} question={question} />
                 ))}
               </div>
             </section>
@@ -55,6 +68,10 @@ export function NestPage() {
       </div>
     </section>
   );
+}
+
+function getNestCategoryId(index: number) {
+  return `nest-category-${index}`;
 }
 
 function QuestionCard({ question, index }: { question: NestQuestion; index: number }) {

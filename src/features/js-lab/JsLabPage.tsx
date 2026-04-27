@@ -15,6 +15,12 @@ import {
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 const primaryButtonClass =
   "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-extrabold text-white transition hover:bg-emerald-800";
+const jsQuestionGroups = jsCategories.map((category) => ({
+  category,
+  questions: jsQuestions
+    .map((question, index) => ({ index: index + 1, question }))
+    .filter(({ question }) => question.category === category),
+}));
 
 export function JsLabPage() {
   const [output, setOutput] = useState("点击运行，观察手写函数结果。");
@@ -79,19 +85,16 @@ export function JsLabPage() {
       </article>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {jsCategories.map((category) => (
+        {jsQuestionGroups.map(({ category, questions }) => (
           <div className={`${cardClass} p-4`} key={category}>
             <p className="text-sm font-extrabold text-emerald-700">{category}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              {jsQuestions.filter((question) => question.category === category).length} 道题
-            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">{questions.length} 道题</p>
           </div>
         ))}
       </div>
 
       <div className="mt-6 grid gap-6">
-        {jsCategories.map((category) => {
-          const questions = jsQuestions.filter((question) => question.category === category);
+        {jsQuestionGroups.map(({ category, questions }) => {
           return (
             <section className="grid gap-4" key={category}>
               <div>
@@ -99,12 +102,8 @@ export function JsLabPage() {
                 <h2 className="mt-1 text-xl font-extrabold text-slate-950">{category} 高频题</h2>
               </div>
               <div className="grid gap-4">
-                {questions.map((question) => (
-                  <QuestionCard
-                    index={jsQuestions.indexOf(question) + 1}
-                    key={question.question}
-                    question={question}
-                  />
+                {questions.map(({ index, question }) => (
+                  <QuestionCard index={index} key={question.question} question={question} />
                 ))}
               </div>
             </section>

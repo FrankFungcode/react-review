@@ -3,6 +3,12 @@ import type { CarbonQuestion } from "../../content/carbonQuestions";
 import { carbonCategories, carbonQuestions } from "../../content/carbonQuestions";
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
+const carbonQuestionGroups = carbonCategories.map((category) => ({
+  category,
+  questions: carbonQuestions
+    .map((question, index) => ({ index: index + 1, question }))
+    .filter(({ question }) => question.category === category),
+}));
 
 export function CarbonPage() {
   return (
@@ -21,8 +27,7 @@ export function CarbonPage() {
       </div>
 
       <div className="grid gap-6">
-        {carbonCategories.map((category) => {
-          const questions = carbonQuestions.filter((item) => item.category === category);
+        {carbonQuestionGroups.map(({ category, questions }) => {
           return (
             <section className="grid gap-4" key={category}>
               <div>
@@ -30,12 +35,8 @@ export function CarbonPage() {
                 <h2 className="mt-1 text-xl font-extrabold text-slate-950">{category} 高频追问</h2>
               </div>
               <div className="grid gap-4">
-                {questions.map((question, index) => (
-                  <QuestionCard
-                    index={carbonQuestions.indexOf(question) + 1 || index + 1}
-                    key={question.question}
-                    question={question}
-                  />
+                {questions.map(({ index, question }) => (
+                  <QuestionCard index={index} key={question.question} question={question} />
                 ))}
               </div>
             </section>

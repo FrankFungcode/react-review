@@ -105,6 +105,7 @@ function KeyBehaviorDemo() {
       <h2 className="text-lg font-extrabold text-slate-900">稳定 key 行为</h2>
       <div className="flex items-center gap-2">
         <button
+          aria-label="反转列表"
           className={iconButtonClass}
           onClick={() => setItems([...items].reverse())}
           title="反转列表"
@@ -113,6 +114,7 @@ function KeyBehaviorDemo() {
           <Shuffle aria-hidden="true" size={18} />
         </button>
         <button
+          aria-label="重置列表"
           className={iconButtonClass}
           onClick={() => setItems(initialItems)}
           title="重置列表"

@@ -29,6 +29,47 @@ export const jsCategories: JsQuestion["category"][] = [
 
 export const jsQuestions: JsQuestion[] = [
   {
+    category: jsCategories[0],
+    question: "JS EventLoop 事件循环机制的完整执行过程是什么？",
+    answer:
+      "EventLoop 是 JS 主线程和宿主环境协作的调度模型。JS 引擎本身只有一个调用栈，同一时间只能执行一段 JS；浏览器或 Node.js 负责把定时器、网络、DOM 事件、文件 I/O 等异步能力放到宿主环境里处理。完整流程可以这样理解：先执行全局 script 这个宏任务，期间同步函数按调用栈先进后出执行；遇到 setTimeout、事件监听、fetch 等异步 API 时，注册给宿主环境而不是立刻进入调用栈；当前宏任务执行完、调用栈清空后，事件循环会先清空微任务队列；微任务全部执行完后，浏览器才有机会执行样式计算、布局、绘制和 requestAnimationFrame；之后事件循环再取下一个宏任务继续执行。",
+    deepDive:
+      "更细一点说，宏任务不是一个统一 API 名称，而是一类 task，例如 script、setTimeout、setInterval、DOM 事件回调、MessageChannel、网络回调等。微任务包括 Promise reaction、queueMicrotask、MutationObserver 等。关键规则是：每执行完一个宏任务，都会进行一次 microtask checkpoint，也就是不断取出并执行微任务，直到微任务队列为空；如果微任务执行过程中又产生新的微任务，新微任务也会在本次 checkpoint 继续执行，所以微任务可以“插队”到下一个宏任务之前。浏览器渲染不是每条 JS 后都发生，而通常发生在宏任务结束、微任务清空之后，并且浏览器会根据帧率、页面是否可见、是否需要更新来决定是否渲染。requestAnimationFrame 回调通常在下一帧绘制前执行，适合读写动画相关状态；requestIdleCallback 则更偏空闲时做低优先级任务。Node.js 也有 EventLoop，但阶段更多，例如 timers、poll、check，并且 process.nextTick 优先级高于普通 Promise 微任务，所以回答时要区分浏览器和 Node。",
+    talkingPoints: [
+      "JS 引擎负责执行调用栈，浏览器/Node 这样的宿主环境负责异步能力和任务调度。",
+      "全局 script 本身就是一个宏任务；同步代码先执行，异步 API 只是注册回调。",
+      "每个宏任务结束后都会清空微任务队列，微任务里新增的微任务也会在本轮继续清空。",
+      "浏览器渲染通常发生在宏任务结束且微任务清空之后，微任务过多会阻塞渲染。",
+      "requestAnimationFrame 通常在下一帧绘制前执行，setTimeout 是后续宏任务，两者不能简单等价。",
+      "Node.js EventLoop 有自己的阶段模型，process.nextTick、Promise、setImmediate、setTimeout 的顺序要单独讨论。",
+    ],
+    codeExample: `console.log("script start");
+
+setTimeout(() => {
+  console.log("timeout 1");
+  Promise.resolve().then(() => console.log("promise in timeout"));
+}, 0);
+
+Promise.resolve()
+  .then(() => {
+    console.log("promise 1");
+    queueMicrotask(() => console.log("queueMicrotask"));
+  })
+  .then(() => console.log("promise 2"));
+
+requestAnimationFrame(() => console.log("rAF"));
+
+console.log("script end");`,
+    codeExplanation: [
+      "第一步执行全局 script 宏任务，所以先输出 `script start`，然后注册 setTimeout 回调、Promise 微任务链、rAF 回调，最后输出 `script end`。",
+      "第二步全局 script 结束，调用栈清空，进入 microtask checkpoint，先执行第一个 Promise.then，输出 `promise 1`，并追加一个 `queueMicrotask`。",
+      "第三步继续清空微任务队列：Promise 链上的下一个 then 和 queueMicrotask 都会在进入下一个宏任务前执行。实际顺序取决于它们入队时机，这段代码通常会输出 `promise 1`、`queueMicrotask`、`promise 2`。",
+      "第四步浏览器有机会处理渲染帧，rAF 通常会在下一次绘制前执行；如果当前环境没有可见渲染帧，rAF 时机可能被延后。",
+      "第五步进入后续宏任务，执行 setTimeout，输出 `timeout 1`；这个宏任务内部又创建 Promise 微任务，所以 `promise in timeout` 会在该宏任务结束后、下一宏任务前执行。",
+      "因此常见输出可理解为：script start -> script end -> promise 1 -> queueMicrotask -> promise 2 -> rAF -> timeout 1 -> promise in timeout。rAF 与 timer 的相对顺序可能受浏览器帧调度影响，面试时要说明这一点。",
+    ],
+  },
+  {
     category: "执行机制",
     question: "执行上下文、调用栈、词法环境和变量环境之间是什么关系？",
     answer:

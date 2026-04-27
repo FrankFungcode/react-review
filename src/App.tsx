@@ -5,20 +5,38 @@ import {
   Code2,
   Layers3,
   Library,
+  MessageSquareText,
   PanelLeftClose,
   PanelLeftOpen,
   Route,
   Server,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { type InterviewSection, interviewSections, weeklyPlan } from "./content/interviewData";
-import { CarbonPage } from "./features/carbon/CarbonPage";
-import { JsLabPage } from "./features/js-lab/JsLabPage";
-import { NestPage } from "./features/nest/NestPage";
-import { ReactDemosPage } from "./features/react-demos/ReactDemosPage";
-import { StatePage } from "./features/state/StatePage";
 
-type PageId = "overview" | "react" | "next" | "js" | "state" | "carbon" | "nest";
+const ReactDemosPage = lazy(() =>
+  import("./features/react-demos/ReactDemosPage").then((module) => ({
+    default: module.ReactDemosPage,
+  })),
+);
+const JsLabPage = lazy(() =>
+  import("./features/js-lab/JsLabPage").then((module) => ({ default: module.JsLabPage })),
+);
+const StatePage = lazy(() =>
+  import("./features/state/StatePage").then((module) => ({ default: module.StatePage })),
+);
+const CarbonPage = lazy(() =>
+  import("./features/carbon/CarbonPage").then((module) => ({ default: module.CarbonPage })),
+);
+const NestPage = lazy(() =>
+  import("./features/nest/NestPage").then((module) => ({ default: module.NestPage })),
+);
+const SsePage = lazy(() =>
+  import("./features/sse/SsePage").then((module) => ({ default: module.SsePage })),
+);
+
+const pageIds = ["overview", "react", "next", "js", "state", "carbon", "nest", "sse"] as const;
+type PageId = (typeof pageIds)[number];
 
 const navItems: Array<{ id: PageId; label: string; icon: typeof BookOpen }> = [
   { id: "overview", label: "总览", icon: BookOpen },
@@ -28,6 +46,7 @@ const navItems: Array<{ id: PageId; label: string; icon: typeof BookOpen }> = [
   { id: "state", label: "状态管理", icon: Layers3 },
   { id: "carbon", label: "碳元素", icon: Atom },
   { id: "nest", label: "Nest.js", icon: Server },
+  { id: "sse", label: "SSE 流式渲染", icon: MessageSquareText },
 ];
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
@@ -36,8 +55,36 @@ const sidebarStorageKey = "react-review-sidebar-collapsed";
 const tooltipClass =
   "pointer-events-none absolute left-full top-1/2 z-30 ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-950 px-2.5 py-1.5 text-xs font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 lg:block";
 
+function isPageId(value: string | null): value is PageId {
+  return pageIds.includes(value as PageId);
+}
+
+function getPageFromLocation() {
+  if (typeof window === "undefined") {
+    return "overview";
+  }
+
+  const pageParam = new URL(window.location.href).searchParams.get("page");
+  return isPageId(pageParam) ? pageParam : "overview";
+}
+
+function getPageHref(pageId: PageId) {
+  if (typeof window === "undefined") {
+    return pageId === "overview" ? "/" : `/?page=${pageId}`;
+  }
+
+  const url = new URL(window.location.href);
+  if (pageId === "overview") {
+    url.searchParams.delete("page");
+  } else {
+    url.searchParams.set("page", pageId);
+  }
+  url.hash = "";
+  return `${url.pathname}${url.search}`;
+}
+
 export function App() {
-  const [page, setPage] = useState<PageId>("overview");
+  const [page, setPage] = useState<PageId>(getPageFromLocation);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -51,12 +98,26 @@ export function App() {
   );
   const sidebarToggleLabel = isSidebarCollapsed ? "展开侧边栏" : "折叠侧边栏";
 
+  useEffect(() => {
+    function syncPageFromHistory() {
+      setPage(getPageFromLocation());
+    }
+
+    window.addEventListener("popstate", syncPageFromHistory);
+    return () => window.removeEventListener("popstate", syncPageFromHistory);
+  }, []);
+
   function toggleSidebar() {
     setIsSidebarCollapsed((current) => {
       const next = !current;
       window.localStorage.setItem(sidebarStorageKey, String(next));
       return next;
     });
+  }
+
+  function navigateToPage(nextPage: PageId) {
+    setPage(nextPage);
+    window.history.pushState({}, "", getPageHref(nextPage));
   }
 
   return (
@@ -114,8 +175,9 @@ export function App() {
             const isActive = page === item.id;
             return (
               <div className="group relative" key={item.id}>
-                <button
+                <a
                   aria-label={item.label}
+                  aria-current={isActive ? "page" : undefined}
                   className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-colors sm:justify-start ${
                     isSidebarCollapsed ? "lg:justify-center lg:px-0" : "lg:justify-start"
                   } ${
@@ -123,15 +185,21 @@ export function App() {
                       ? "bg-slate-700 text-white"
                       : "text-slate-300 hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white"
                   }`}
-                  onClick={() => setPage(item.id)}
+                  href={getPageHref(item.id)}
+                  onClick={(event) => {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                      return;
+                    }
+                    event.preventDefault();
+                    navigateToPage(item.id);
+                  }}
                   title={item.label}
-                  type="button"
                 >
                   <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
                   <span className={`truncate ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
                     {item.label}
                   </span>
-                </button>
+                </a>
                 {isSidebarCollapsed && <span className={tooltipClass}>{item.label}</span>}
               </div>
             );
@@ -140,15 +208,24 @@ export function App() {
       </aside>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {page === "overview" && <Overview />}
-        {page === "react" && <ReactDemosPage section={activeSection} />}
-        {page === "next" && activeSection && <QuestionBank section={activeSection} />}
-        {page === "js" && <JsLabPage />}
-        {page === "state" && <StatePage section={activeSection} />}
-        {page === "carbon" && <CarbonPage />}
-        {page === "nest" && <NestPage />}
+        <Suspense fallback={<PageFallback />}>
+          {page === "overview" && <Overview />}
+          {page === "react" && <ReactDemosPage section={activeSection} />}
+          {page === "next" && activeSection && <QuestionBank section={activeSection} />}
+          {page === "js" && <JsLabPage />}
+          {page === "state" && <StatePage section={activeSection} />}
+          {page === "carbon" && <CarbonPage />}
+          {page === "nest" && <NestPage />}
+          {page === "sse" && <SsePage />}
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+function PageFallback() {
+  return (
+    <output className={`${cardClass} block p-4 font-bold text-slate-700 sm:p-5`}>Loading…</output>
   );
 }
 
@@ -217,6 +294,19 @@ function Overview() {
               <li>事务与权限</li>
               <li>缓存与队列</li>
               <li>全栈系统设计</li>
+            </ul>
+          </article>
+          <article className={`${cardClass} p-4 sm:p-5`}>
+            <h3 className="text-lg font-extrabold text-slate-900">SSE 流式渲染</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              面向 AI Chat 面试，覆盖 SSE 协议、前后端流式实现、断线重连、停止生成、Markdown
+              安全渲染和部署网关问题。
+            </p>
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-6 text-slate-700">
+              <li>AI token streaming</li>
+              <li>fetch stream 与 AbortController</li>
+              <li>重连去重与心跳</li>
+              <li>安全部署与成本统计</li>
             </ul>
           </article>
         </div>

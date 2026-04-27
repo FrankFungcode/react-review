@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web Design Guidelines"
+  short_description: "Review UI code against web interface guidelines"
+  default_prompt: "Use Web Design Guidelines when reviewing UI, accessibility, UX, or interface quality in frontend files."
