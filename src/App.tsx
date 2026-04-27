@@ -13,6 +13,11 @@ import {
 } from "lucide-react";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { type InterviewSection, interviewSections, weeklyPlan } from "./content/interviewData";
+import {
+  QuestionSearchEmptyState,
+  QuestionSearchPanel,
+} from "./features/question-search/QuestionSearchPanel";
+import { questionMatchesSearch, useQuestionSearchQuery } from "./features/question-search/search";
 
 const ReactDemosPage = lazy(() =>
   import("./features/react-demos/ReactDemosPage").then((module) => ({
@@ -336,6 +341,18 @@ function SectionHeading({
 }
 
 function QuestionBank({ section }: { section: InterviewSection }) {
+  const [query, setQuery] = useQuestionSearchQuery();
+  const filteredQuestions = useMemo(
+    () =>
+      section.questions.filter((question) =>
+        questionMatchesSearch(
+          [question.question, question.shortAnswer, question.detail, question.followUp],
+          query,
+        ),
+      ),
+    [query, section.questions],
+  );
+
   return (
     <section className="py-3 sm:py-6">
       <SectionHeading
@@ -343,8 +360,14 @@ function QuestionBank({ section }: { section: InterviewSection }) {
         title={section.title}
         description={section.description}
       />
+      <QuestionSearchPanel
+        query={query}
+        onQueryChange={setQuery}
+        resultCount={filteredQuestions.length}
+        totalCount={section.questions.length}
+      />
       <div className="grid gap-4">
-        {section.questions.map((question) => (
+        {filteredQuestions.map((question) => (
           <article className={`${cardClass} p-4 sm:p-5`} key={question.question}>
             <h2 className="text-lg font-extrabold leading-7 text-slate-900 sm:text-xl">
               {question.question}
@@ -360,6 +383,7 @@ function QuestionBank({ section }: { section: InterviewSection }) {
           </article>
         ))}
       </div>
+      {query.trim() && filteredQuestions.length === 0 && <QuestionSearchEmptyState query={query} />}
     </section>
   );
 }

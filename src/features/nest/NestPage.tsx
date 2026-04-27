@@ -1,5 +1,15 @@
+import { useMemo } from "react";
 import type { NestQuestion } from "../../content/nestQuestions";
 import { nestCategories, nestQuestions } from "../../content/nestQuestions";
+import {
+  QuestionSearchEmptyState,
+  QuestionSearchPanel,
+} from "../question-search/QuestionSearchPanel";
+import {
+  type SearchableField,
+  filterGroupedQuestions,
+  useQuestionSearchQuery,
+} from "../question-search/search";
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 const nestQuestionGroups = nestCategories.map((category, categoryIndex) => ({
@@ -11,6 +21,20 @@ const nestQuestionGroups = nestCategories.map((category, categoryIndex) => ({
 }));
 
 export function NestPage() {
+  const [query, setQuery] = useQuestionSearchQuery();
+  const filteredQuestionGroups = useMemo(
+    () =>
+      filterGroupedQuestions(nestQuestionGroups, query, ({ question }) =>
+        getNestSearchFields(question),
+      ),
+    [query],
+  );
+  const totalQuestionCount = nestQuestions.length;
+  const filteredQuestionCount = filteredQuestionGroups.reduce(
+    (total, group) => total + group.questions.length,
+    0,
+  );
+
   function scrollToCategory(id: string) {
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth",
@@ -34,8 +58,15 @@ export function NestPage() {
         </p>
       </div>
 
+      <QuestionSearchPanel
+        query={query}
+        onQueryChange={setQuery}
+        resultCount={filteredQuestionCount}
+        totalCount={totalQuestionCount}
+      />
+
       <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {nestQuestionGroups.map(({ category, id, questions }) => (
+        {filteredQuestionGroups.map(({ category, id, questions }) => (
           <button
             aria-label={`跳转到 ${category}`}
             className={`${cardClass} cursor-pointer p-4 text-left transition hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-100`}
@@ -50,7 +81,7 @@ export function NestPage() {
       </div>
 
       <div className="grid gap-6">
-        {nestQuestionGroups.map(({ category, id, questions }) => {
+        {filteredQuestionGroups.map(({ category, id, questions }) => {
           return (
             <section className="grid scroll-mt-24 gap-4 lg:scroll-mt-8" id={id} key={category}>
               <div>
@@ -65,9 +96,22 @@ export function NestPage() {
             </section>
           );
         })}
+        {query.trim() && filteredQuestionCount === 0 && <QuestionSearchEmptyState query={query} />}
       </div>
     </section>
   );
+}
+
+function getNestSearchFields(question: NestQuestion): SearchableField[] {
+  return [
+    question.category,
+    question.question,
+    question.answer,
+    question.seniorPerspective,
+    question.talkingPoints,
+    question.codeExplanation,
+    question.codeExample,
+  ];
 }
 
 function getNestCategoryId(index: number) {

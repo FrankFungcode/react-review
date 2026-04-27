@@ -1,6 +1,15 @@
 import { Play } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { type JsQuestion, jsCategories, jsQuestions } from "../../content/jsQuestions";
+import {
+  QuestionSearchEmptyState,
+  QuestionSearchPanel,
+} from "../question-search/QuestionSearchPanel";
+import {
+  type SearchableField,
+  filterGroupedQuestions,
+  useQuestionSearchQuery,
+} from "../question-search/search";
 import {
   deepClone,
   flatten,
@@ -23,7 +32,20 @@ const jsQuestionGroups = jsCategories.map((category) => ({
 }));
 
 export function JsLabPage() {
+  const [query, setQuery] = useQuestionSearchQuery();
   const [output, setOutput] = useState("点击运行，观察手写函数结果。");
+  const filteredQuestionGroups = useMemo(
+    () =>
+      filterGroupedQuestions(jsQuestionGroups, query, ({ question }) =>
+        getJsSearchFields(question),
+      ),
+    [query],
+  );
+  const totalQuestionCount = jsQuestions.length;
+  const filteredQuestionCount = filteredQuestionGroups.reduce(
+    (total, group) => total + group.questions.length,
+    0,
+  );
 
   async function runExamples() {
     function Person(this: { name: string }, name: string) {
@@ -84,8 +106,17 @@ export function JsLabPage() {
         <p className="break-words rounded-lg bg-sky-50 p-3 leading-7 text-slate-600">{output}</p>
       </article>
 
+      <div className="mt-6">
+        <QuestionSearchPanel
+          query={query}
+          onQueryChange={setQuery}
+          resultCount={filteredQuestionCount}
+          totalCount={totalQuestionCount}
+        />
+      </div>
+
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {jsQuestionGroups.map(({ category, questions }) => (
+        {filteredQuestionGroups.map(({ category, questions }) => (
           <div className={`${cardClass} p-4`} key={category}>
             <p className="text-sm font-extrabold text-emerald-700">{category}</p>
             <p className="mt-1 text-sm leading-6 text-slate-600">{questions.length} 道题</p>
@@ -94,7 +125,7 @@ export function JsLabPage() {
       </div>
 
       <div className="mt-6 grid gap-6">
-        {jsQuestionGroups.map(({ category, questions }) => {
+        {filteredQuestionGroups.map(({ category, questions }) => {
           return (
             <section className="grid gap-4" key={category}>
               <div>
@@ -109,9 +140,22 @@ export function JsLabPage() {
             </section>
           );
         })}
+        {query.trim() && filteredQuestionCount === 0 && <QuestionSearchEmptyState query={query} />}
       </div>
     </section>
   );
+}
+
+function getJsSearchFields(question: JsQuestion): SearchableField[] {
+  return [
+    question.category,
+    question.question,
+    question.answer,
+    question.deepDive,
+    question.talkingPoints,
+    question.codeExplanation,
+    question.codeExample,
+  ];
 }
 
 function QuestionCard({ question, index }: { question: JsQuestion; index: number }) {

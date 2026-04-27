@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Project: React Interview Review.
+  Tech stack: React 18, TypeScript, Vite, Tailwind CSS, Redux Toolkit, Zustand, Biome, Vitest.
+  Domain: frontend/full-stack interview study app with modular question banks, demos, and long-form technical answers.
+  Development model: spec-driven development. Create or update OpenSpec changes before implementing non-trivial behavior.
+  Existing AI guidance: .agents/skills and .codex/skills contain review and frontend quality rules; OpenSpec is the higher-level source of product and workflow intent.
+
+rules:
+  proposal:
+    - Include Why, What Changes, Capabilities, and Impact.
+    - Keep proposals focused on intent and scope; put implementation details in design.md.
+  specs:
+    - Use SHALL or MUST for normative requirements.
+    - Every requirement must include at least one Given/When/Then scenario.
+  tasks:
+    - Use checkboxes in dependency order.
+    - Include validation tasks for npm run check, npm run test, and npm run build when code changes.

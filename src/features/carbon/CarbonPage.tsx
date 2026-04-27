@@ -1,6 +1,16 @@
+import { useMemo } from "react";
 import { carbonEnhancements } from "../../content/carbonEnhancements";
 import type { CarbonQuestion } from "../../content/carbonQuestions";
 import { carbonCategories, carbonQuestions } from "../../content/carbonQuestions";
+import {
+  QuestionSearchEmptyState,
+  QuestionSearchPanel,
+} from "../question-search/QuestionSearchPanel";
+import {
+  type SearchableField,
+  filterGroupedQuestions,
+  useQuestionSearchQuery,
+} from "../question-search/search";
 
 const cardClass = "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 const carbonQuestionGroups = carbonCategories.map((category) => ({
@@ -11,6 +21,20 @@ const carbonQuestionGroups = carbonCategories.map((category) => ({
 }));
 
 export function CarbonPage() {
+  const [query, setQuery] = useQuestionSearchQuery();
+  const filteredQuestionGroups = useMemo(
+    () =>
+      filterGroupedQuestions(carbonQuestionGroups, query, ({ index, question }) =>
+        getCarbonSearchFields(question, index),
+      ),
+    [query],
+  );
+  const totalQuestionCount = carbonQuestions.length;
+  const filteredQuestionCount = filteredQuestionGroups.reduce(
+    (total, group) => total + group.questions.length,
+    0,
+  );
+
   return (
     <section className="py-3 sm:py-6">
       <div className="mb-6 max-w-4xl">
@@ -26,8 +50,15 @@ export function CarbonPage() {
         </p>
       </div>
 
+      <QuestionSearchPanel
+        query={query}
+        onQueryChange={setQuery}
+        resultCount={filteredQuestionCount}
+        totalCount={totalQuestionCount}
+      />
+
       <div className="grid gap-6">
-        {carbonQuestionGroups.map(({ category, questions }) => {
+        {filteredQuestionGroups.map(({ category, questions }) => {
           return (
             <section className="grid gap-4" key={category}>
               <div>
@@ -42,9 +73,26 @@ export function CarbonPage() {
             </section>
           );
         })}
+        {query.trim() && filteredQuestionCount === 0 && <QuestionSearchEmptyState query={query} />}
       </div>
     </section>
   );
+}
+
+function getCarbonSearchFields(question: CarbonQuestion, index: number): SearchableField[] {
+  const enhancement = carbonEnhancements[index];
+
+  return [
+    question.category,
+    question.question,
+    question.shortAnswer,
+    question.detail,
+    question.talkingPoints,
+    question.codeExample,
+    enhancement?.deepDive,
+    enhancement?.codeExplanation,
+    enhancement?.codeExample,
+  ];
 }
 
 function QuestionCard({

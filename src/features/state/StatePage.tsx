@@ -1,6 +1,11 @@
 import { Loader2, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { InterviewSection } from "../../content/interviewData";
+import {
+  QuestionSearchEmptyState,
+  QuestionSearchPanel,
+} from "../question-search/QuestionSearchPanel";
+import { questionMatchesSearch, useQuestionSearchQuery } from "../question-search/search";
 import { useAppDispatch, useAppSelector } from "./redux/hooks";
 import {
   addTodo,
@@ -22,6 +27,19 @@ const secondaryButtonClass =
   "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-emerald-100 px-4 py-2 font-extrabold text-emerald-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-70";
 
 export function StatePage({ section }: { section?: InterviewSection }) {
+  const [query, setQuery] = useQuestionSearchQuery();
+  const questions = section?.questions ?? [];
+  const filteredQuestions = useMemo(
+    () =>
+      questions.filter((question) =>
+        questionMatchesSearch(
+          [question.question, question.shortAnswer, question.detail, question.followUp],
+          query,
+        ),
+      ),
+    [query, questions],
+  );
+
   return (
     <section className="py-3 sm:py-6">
       <div className="mb-5 max-w-3xl">
@@ -60,7 +78,13 @@ export function StatePage({ section }: { section?: InterviewSection }) {
       </article>
 
       <div className="mt-5 grid gap-4">
-        {section?.questions.map((question) => (
+        <QuestionSearchPanel
+          query={query}
+          onQueryChange={setQuery}
+          resultCount={filteredQuestions.length}
+          totalCount={questions.length}
+        />
+        {filteredQuestions.map((question) => (
           <article className={`${cardClass} p-4 sm:p-5`} key={question.question}>
             <h2 className="text-lg font-extrabold leading-7 text-slate-900 sm:text-xl">
               {question.question}
@@ -75,6 +99,9 @@ export function StatePage({ section }: { section?: InterviewSection }) {
             </div>
           </article>
         ))}
+        {query.trim() && filteredQuestions.length === 0 && (
+          <QuestionSearchEmptyState query={query} />
+        )}
       </div>
     </section>
   );
